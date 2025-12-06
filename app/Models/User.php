@@ -26,7 +26,10 @@ class User extends Authenticatable
         'first_name',
         'password',
         'active',
-        'role'
+        'role',
+        'delete',
+        'account'
+
     ];
 
     /**
@@ -51,4 +54,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+      public function books()
+    {
+        return   $this->hasMany(Book::class);
+    }
+    public function views()
+    {
+        return   $this->hasMany(View::class);
+    }
+    public function houses()
+        {
+           return $this->hasMany(House::class);
+        }
 }

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\HouseController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -15,11 +17,30 @@ Route::post('register',[UserController::class,'register']);
 
 Route::middleware('auth:sanctum')->group(function()
 {
-Route::get('getRequests',[UserController::class,'getRequests'])->middleware('CheckAdmin');
-Route::get('getRequests/{id}',[UserController::class,'getUser'])->middleware('CheckAdmin');
-Route::put('acceptedUser/{id}',[UserController::class,'acceptedUser'])->middleware('CheckAdmin');
-Route::delete('rejectionUser/{id}',[UserController::class,'rejectionUser'])->middleware('CheckAdmin');
+Route::get('getUserForActive',[UserController::class,'getUserForActive']);
+
+Route::middleware('CheckActive')->group(function(){
+Route::post('storeHouse',[HouseController::class,'storeHouse']);
+Route::post('storeImages/{id}',[ImageController::class,'storeImages']);
+Route::delete('destroyImage/{id}',[ImageController::class,'destroyImage']);
+Route::get('getHouses',[HouseController::class,'getHouses']);
+Route::put('requestDelete',[UserController::class,'requestDelete']);
+Route::put('updateHouse/{id}',[HouseController::class,'updateHouse']);
+Route::delete('destroyHouse/{id}',[HouseController::class,'destroyHouse']);
+Route::get('getDetailsHouses/{id}',[HouseController::class,'getDetailsHouses']);});
+
+
+Route::middleware('CheckAdmin')->group(function(){
+Route::get('getRegisterRequests',[UserController::class,'getRegisterRequests']);
+Route::get('getUser/{id}',[UserController::class,'getUser']);
+Route::put('acceptedUser/{id}',[UserController::class,'acceptedUser']);
+Route::delete('rejectionUser/{id}',[UserController::class,'rejectionUser']);
+Route::get('getDeleteRequests',[UserController::class,'getDeleteRequests']);
+Route::delete('acceptedDeleteUser/{id}',[UserController::class,'acceptedDeleteUser']);
+Route::put('rejectionDeleteUser/{id}',[UserController::class,'rejectionDeleteUser']);
+Route::put('addToAccount',[UserController::class,'addToAccount']);});
 });
+
 Route::post('login',[UserController::class,'login']);
 Route::post('logout',[UserController::class,'logout'])->middleware('auth:sanctum');
 
