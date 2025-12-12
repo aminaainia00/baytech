@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('personal_photo')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->string('phone')->unique();
-            $table->double('account')->nullable();
+            $table->string('account')->nullable();
             $table->string('password');
             $table->string('Personal_identity_photo')->nullable();
             $table->enum('active',['active','notactive'])->default('notactive');

@@ -14,17 +14,17 @@ return new class extends Migration
         Schema::create('houses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('country');
-            $table->string('city');
+            $table->foreignId('governorate_id')->constrained('governorates')->cascadeOnDelete();
+            $table->foreignId('city_id')->constrained('cities')->cascadeOnDelete();
             $table->string('category');
             $table->string('title');
-            $table->integer('bedrooms');
-            $table->integer('bathrooms');
-            $table->integer('livingrooms');
-            $table->double('area');
-            $table->double('price');
+            $table->string('bedrooms');
+            $table->string('bathrooms');
+            $table->string('livingrooms');
+            $table->string('area');
+            $table->string('day_price');
             $table->string('mainImage');
-            $table->text('descreption')->nullable();
+            $table->string('descreption')->nullable();
             $table->timestamps();
         });
     }

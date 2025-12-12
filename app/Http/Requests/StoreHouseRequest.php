@@ -22,14 +22,12 @@ class StoreHouseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'country'=>'required|string',
-            'city'=>'required|string',
             'category'=>'required|string',
-            'bedrooms'=>'required|integer',
-            'bathrooms'=>'required|integer',
-            'livingrooms'=>'required|integer',
-            'area'=>'required|numeric',
-            'price'=>'required|numeric',
+            'bedrooms'=>'required|regex:/^[0-9]+$/',
+            'bathrooms'=>'required|regex:/^[0-9]+$/',
+            'livingrooms'=>'required|regex:/^[0-9]+$/',
+            'area'=>'required|regex:/^[0-9]+$/',
+            'day_price'=>'required|regex:/^[0-9]+$/',
             'title'=>'required|string|unique:houses,title',
             'mainImage'=>'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'descreption'=>'nullable|string',

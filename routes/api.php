@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\HouseController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\UserController;
@@ -23,12 +24,19 @@ Route::middleware('CheckActive')->group(function(){
 Route::post('storeHouse',[HouseController::class,'storeHouse']);
 Route::post('storeImages/{id}',[ImageController::class,'storeImages']);
 Route::delete('destroyImage/{id}',[ImageController::class,'destroyImage']);
+Route::get('getImages/{id}',[ImageController::class,'getImages']);
 Route::get('getHouses',[HouseController::class,'getHouses']);
+Route::get('getHousesForOwner',[HouseController::class,'getHousesForOwner']);
 Route::put('requestDelete',[UserController::class,'requestDelete']);
 Route::put('updateHouse/{id}',[HouseController::class,'updateHouse']);
 Route::delete('destroyHouse/{id}',[HouseController::class,'destroyHouse']);
-Route::get('getDetailsHouses/{id}',[HouseController::class,'getDetailsHouses']);});
-
+Route::post('house/{id}/favorite',[HouseController::class,'addToFavorites']);
+Route::delete('house/{id}/favorite',[HouseController::class,'removeFromFavorites']);
+Route::get('getFavoriteHousesByUser',[HouseController::class,'getFavoriteHousesByUser']);
+Route::get('isFavoriteHouseByUser/{id}',[HouseController::class,'isFavoriteHouseByUser']);
+Route::get('getCitesForGovernorate',[CityController::class,'getCitesForGovernorate']);
+//Route::get('getDetailsHouses/{id}',[HouseController::class,'getDetailsHouses']);
+});
 
 Route::middleware('CheckAdmin')->group(function(){
 Route::get('getRegisterRequests',[UserController::class,'getRegisterRequests']);

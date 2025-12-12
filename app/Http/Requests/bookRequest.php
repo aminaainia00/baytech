@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreBookValidate extends FormRequest
+class bookRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -21,11 +21,12 @@ class StoreBookValidate extends FormRequest
      */
     public function rules(): array
     {
-        return [
+          return [
            // 'houseId' => 'required|exists:houses,id',
            // 'userId' => 'required|exists:users,id',
-            'date_start' => 'required|date',
-            'date_end' => 'required|date',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after:start_date',
+
         ];
     }
 }

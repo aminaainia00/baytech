@@ -40,12 +40,12 @@ class UserController extends Controller
 
             if($request->hasFile('Personal_identity_photo'))
                {
-                 $path= $request->file('Personal_identity_photo')->store('my photo','public');
+                 $path= $request->file('Personal_identity_photo')->store('my_photo','public');
                  $validated['Personal_identity_photo']=$path;
                }
             if($request->hasFile('personal_photo'))
                {
-                 $path= $request->file('personal_photo')->store('my photo','public');
+                 $path= $request->file('personal_photo')->store('my_photo','public');
                  $validated['personal_photo']=$path;
                }
         $user=User::create($validated);
@@ -81,7 +81,7 @@ class UserController extends Controller
     public function getUser($userId){
         try{
            $userData=User::findOrFail($userId);
-           return response()->json($userData,200);
+           return response()->json(['User'=>$userData],200);
            }
         catch(ModelNotFoundException $ex){
             return response()->json([
@@ -93,7 +93,7 @@ class UserController extends Controller
 
      public function getUserForActive(){
            $userData=Auth::user();
-           return response()->json($userData,200);
+           return response()->json(['User'=>$userData],200);
     }
 
     public function getRegisterRequests(){
@@ -222,7 +222,7 @@ class UserController extends Controller
         public function addToAccount(Request $request){
             $request->validate([
             'phone'=>'required|min:10|max:10|regex:/^[0-9]+$/',
-            'account'=>'required|numeric'
+            'account'=>'required|regex:/^[0-9]+$/'
              ],
              [
            'phone.min' =>'The phone number field must be at least 10 characters',

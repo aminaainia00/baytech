@@ -15,17 +15,24 @@ class House extends Model
     {
        return $this->hasMany(Image::class);
     }
-    public function views()
-    {
-        return $this->hasMany(View::class);
-    }
-     public function books()
-    {
-        return $this->hasMany(Book::class);
-    }
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    public function favoriteByUser() {
+        return $this->belongsToMany(User::class,'favorites');
+    }
+    public function bookHouseseByUser()
+    {
+         return $this->belongsToMany(User::class,'books');
+    }
+     public function governorate ()
+    {
+        return $this->belongsTo(Governorate::class);
+    }
+     public function city ()
+    {
+        return $this->belongsTo(City::class);
+    }
 }

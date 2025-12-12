@@ -22,14 +22,12 @@ class UpdateHouseRequest extends FormRequest
     public function rules(): array
     {   $id=$this->route('id');
         return [
-            'country'=>'nullable|string',
-            'city'=>'nullable|string',
             'category'=>'nullable|string',
-            'bedrooms'=>'nullable|integer',
-            'bathrooms'=>'nullable|integer',
-            'livingrooms'=>'nullable|integer',
-            'area'=>'nullable|numeric',
-            'price'=>'nullable|numeric',
+            'bedrooms'=>'nullable|regex:/^[0-9]+$/',
+            'bathrooms'=>'nullable|regex:/^[0-9]+$/',
+            'livingrooms'=>'nullable|regex:/^[0-9]+$/',
+            'area'=>'nullable|regex:/^[0-9]+$/',
+            'day_price'=>'nullable|regex:/^[0-9]+$/',
             'title'=>'nullable|string|unique:houses,title,' . $id,
             'mainImage'=>'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'descreption'=>'nullable|string',
