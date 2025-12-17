@@ -47,6 +47,7 @@ Route::put('updateBooking/{id}',[BookController::class,'updateBooking']);
 Route::get('updateRequests/{id}',[BookController::class,'updateRequests']);
 Route::put('acceptedUpdateBookRequest/{id}',[BookController::class,'acceptedUpdateBookRequest']);
 Route::put('RejectionUpdateBookRequest/{id}',[BookController::class,'RejectionUpdateBookRequest']);
+Route::get('getBookForHouse/{id}',[BookController::class,'getBookForHouse']);
 
 Route::post('storeEvaluation/{id}',[EvaluationController::class,'storeEvaluation']);
 Route::get('getHousesByEvaluation',[EvaluationController::class,'getHousesByEvaluation']);

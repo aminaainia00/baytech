@@ -489,4 +489,9 @@ public function RejectionUpdateBookRequest($id){
 
 }
 }
+public function getBookForHouse($id)
+{
+     $bookings=BooK::where('house_id',$id)->where('book_status','accepted')->get();
+     return BookResource::collection($bookings);
+}
 }

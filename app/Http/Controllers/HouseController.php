@@ -55,7 +55,7 @@ public function storeHouse(StoreHouseRequest $request)
 }
     public function getHouses(Request $request){
         $user_id=Auth::user()->id;
-       echo $request->query('title_search');
+        $order = $request->get('order', 'desc');
         $houses = House::query()
         ->when($search=$request->query('search'), function($query, $search) {
                 $query->where('descreption','LIKE' ,"%{$search}%");
@@ -114,7 +114,8 @@ public function storeHouse(StoreHouseRequest $request)
             ->when($request->query('max_livingrooms'), function($query, $maxLivingrooms) {
                 $query->whereRaw('CAST(livingrooms AS UNSIGNED) <= ?', [(int) $maxLivingrooms]);
             })->where('user_id','!=',$user_id)
-            ->with(['city', 'governorate'])->withAvg('evaluations','star')->get();
+            ->with(['city', 'governorate'])->withAvg('evaluations','star')
+            ->orderBy('evaluations_avg_star', $order)->get();
 
           return  HouseResource::collection($houses);
 }
