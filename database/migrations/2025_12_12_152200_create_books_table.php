@@ -17,8 +17,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->date('start_date');
             $table->date('end_date');
+            $table->date('start_date_update')->nullable();
+            $table->date('end_date_update')->nullable();
+            $table->double('price_difference')->nullable();
             $table->enum('book_status',['pending','accepted','cancelled'])->default('pending');
             $table->string('total_price');
+            $table->string('total_price_update')->nullable();
             $table->timestamps();
         });
     }

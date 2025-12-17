@@ -35,4 +35,10 @@ class House extends Model
     {
         return $this->belongsTo(City::class);
     }
+     public function books(){
+          return $this->hasMany(Book::class);
+    }
+     public function evaluations(){
+          return $this->hasMany(Evaluation::class);
+    }
 }

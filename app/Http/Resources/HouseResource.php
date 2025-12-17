@@ -29,14 +29,9 @@ class HouseResource extends JsonResource
             'descreption'=>$this->descreption,
             'city_id' => $this->city_id,
             'governorate_id' => $this->governorate_id,
-            'city' => $this->city ? [
-                'id'   => $this->city->id,
-                'name' => $this->city->name,
-            ] : null,
-            'governorate' => $this->governorate ? [
-                'id'   => $this->governorate->id,
-                'name' => $this->governorate->name,
-            ] : null,
+            'city' => $this->city->name,
+            'governorate' => $this->governorate->name,
+            'avg_star'=>$this->evaluations_avg_star
             ]
         ];
     }

@@ -24,7 +24,7 @@ class StoreImageRequest extends FormRequest
         return [
             //'house_id' => 'required|exists:houses,id',
             'houseImages' => 'required|array|min:1',
-            'houseImages.*' => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048'
+            'houseImages.*' => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:10240'
         ];
     }
 }

@@ -20,8 +20,8 @@ class UserController extends Controller
             'date_of_birth'=>'required|date|before_or_equal:today',
             'phone'=>'unique:users,phone|required|min:10|max:10|regex:/^[0-9]+$/',
             'password'=>['required','string','confirmed',Password::min(8)->mixedCase()->numbers()->symbols()],
-            'Personal_identity_photo'=>'required|image|mimes:png,jpg,jpeg,gef|max:2048',
-            'personal_photo'=>'required|image|mimes:png,jpg,jpeg,gef|max:2048'
+            'Personal_identity_photo'=>'required|image|mimes:png,jpg,jpeg,gef|max:10240',
+            'personal_photo'=>'required|image|mimes:png,jpg,jpeg,gef|max:10240'
         ],
         [
           'date_of_birth.date'=>' we need the full date',
@@ -106,7 +106,7 @@ class UserController extends Controller
         try{
             $userData=User::findOrFail($userId);
             $userData->update(['active'=>'active']);
-            return response()->json(['message'=>'the user was accepted'], 200);
+            return response()->json(['message'=>'the user accepted'], 200);
            }
         catch(ModelNotFoundException $ex){
         return response()->json([
@@ -121,7 +121,7 @@ class UserController extends Controller
         try{
         $userData=User::findOrFail($userId);
         $userData->delete();
-         return response()->json(['message'=>'the user was rejected'], 200);
+         return response()->json(['message'=>'the user  rejected'], 200);
         }catch(ModelNotFoundException $e)
         {
             return response()->json([

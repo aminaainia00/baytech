@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreViewRequest extends FormRequest
+class EvaluationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,9 +22,7 @@ class StoreViewRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //'house_id' => 'required|exists:houses,id',
-            //'userId' => 'required|exists:users,id',
-            'comment'=>'sometimes|string'
+            'star'=>'required|in:1,2,3,4,5'
         ];
     }
 }

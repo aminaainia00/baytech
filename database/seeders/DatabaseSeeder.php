@@ -19,6 +19,6 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
-        $this->call([GovernorateSeeder::class,CitySeeder::class,HouseSeeder::class,ImageSeeder::class]);
+        $this->call([GovernorateSeeder::class,CitySeeder::class]);
     }
 }

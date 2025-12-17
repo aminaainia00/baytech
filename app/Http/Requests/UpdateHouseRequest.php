@@ -29,7 +29,7 @@ class UpdateHouseRequest extends FormRequest
             'area'=>'nullable|regex:/^[0-9]+$/',
             'day_price'=>'nullable|regex:/^[0-9]+$/',
             'title'=>'nullable|string|unique:houses,title,' . $id,
-            'mainImage'=>'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'mainImage'=>'nullable|image|mimes:jpg,jpeg,png,webp|max:10240',
             'descreption'=>'nullable|string',
 
         ];

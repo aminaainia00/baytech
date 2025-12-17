@@ -7,13 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class Governorate extends Model
-{ use HasFactory, Notifiable,HasApiTokens;
+class Book extends Model
+{
+    use HasFactory, Notifiable,HasApiTokens;
     protected $guarded=[];
-    public function cities(){
-        return $this->hasMany(City::class);
+    public function user(){
+        return $this->belongsTo(User::class);
     }
-    public function houses(){
-        return $this->hasMany(House::class);
+    public function house(){
+        return $this->belongsTo(House::class);
     }
 }

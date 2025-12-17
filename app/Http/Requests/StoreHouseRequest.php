@@ -29,10 +29,8 @@ class StoreHouseRequest extends FormRequest
             'area'=>'required|regex:/^[0-9]+$/',
             'day_price'=>'required|regex:/^[0-9]+$/',
             'title'=>'required|string|unique:houses,title',
-            'mainImage'=>'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'mainImage'=>'required|image|mimes:jpg,jpeg,png,webp|max:10240',
             'descreption'=>'nullable|string',
-
-
         ];
     }
 }

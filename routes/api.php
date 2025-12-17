@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\BookController;
 use App\Http\Controllers\CityController;
+use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\HouseController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\UserController;
@@ -35,6 +37,19 @@ Route::delete('house/{id}/favorite',[HouseController::class,'removeFromFavorites
 Route::get('getFavoriteHousesByUser',[HouseController::class,'getFavoriteHousesByUser']);
 Route::get('isFavoriteHouseByUser/{id}',[HouseController::class,'isFavoriteHouseByUser']);
 Route::get('getCitesForGovernorate',[CityController::class,'getCitesForGovernorate']);
+Route::post('storeBook/{id}',[BookController::class,'storeBook']);
+Route::get('BookingRequests/{id}',[BookController::class,'BookingRequests']);
+Route::put('acceptedeBooking/{id}',[BookController::class,'acceptedeBooking']);
+Route::put('RejectionBooking/{id}',[BookController::class,'RejectionBooking']);
+Route::put('cancelBooking/{id}',[BookController::class,'cancelBooking']);
+Route::get('getMyBookings',[BookController::class,'getMyBookings']);
+Route::put('updateBooking/{id}',[BookController::class,'updateBooking']);
+Route::get('updateRequests/{id}',[BookController::class,'updateRequests']);
+Route::put('acceptedUpdateBookRequest/{id}',[BookController::class,'acceptedUpdateBookRequest']);
+Route::put('RejectionUpdateBookRequest/{id}',[BookController::class,'RejectionUpdateBookRequest']);
+
+Route::post('storeEvaluation/{id}',[EvaluationController::class,'storeEvaluation']);
+Route::get('getHousesByEvaluation',[EvaluationController::class,'getHousesByEvaluation']);
 //Route::get('getDetailsHouses/{id}',[HouseController::class,'getDetailsHouses']);
 });
 

@@ -54,16 +54,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-      public function bookHouses()
-    {
-        return $this->belongsToMany(House::class,'books');
+    public function books(){
+          return $this->hasMany(Book::class);
     }
-
     public function houses()
     {
            return $this->hasMany(House::class);
     }
     public function favoriteHouses(){
         return $this->belongsToMany(House::class,'favorites');
+    }
+    public function evaluations(){
+          return $this->hasMany(Evaluation::class);
     }
 }

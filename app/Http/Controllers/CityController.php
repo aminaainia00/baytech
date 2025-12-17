@@ -15,9 +15,7 @@ class CityController extends Controller
         foreach($cities as $city)
         {
             $city_data[]=[
-                'city' => [
-                'id'   => $city->id,
-                'name' => $city->name,]];}
+                'city'=> $city->name,];}
         return response()->json($city_data);
     }
-    }
+}

@@ -31,7 +31,7 @@ public function storeHouse(StoreHouseRequest $request)
     if (!$city ) {
         return response()->json(['errors' => 'The city field is required.'], 422);
     }
-     if (! $governorate) {
+     if (!$governorate) {
         return response()->json(['errors' => 'The governorate field is required.'], 422);
     }
     if ($city->governorate_id != $governorate->id) {
@@ -55,6 +55,7 @@ public function storeHouse(StoreHouseRequest $request)
 }
     public function getHouses(Request $request){
         $user_id=Auth::user()->id;
+       echo $request->query('title_search');
         $houses = House::query()
         ->when($search=$request->query('search'), function($query, $search) {
                 $query->where('descreption','LIKE' ,"%{$search}%");
@@ -84,36 +85,36 @@ public function storeHouse(StoreHouseRequest $request)
                 $query->whereIn('category', $category_search);
             })
             ->when($request->query('min_price'), function($query, $minPrice) {
-                $query->where('day_price', '>=', $minPrice);
+                $query->whereRaw('CAST(day_price AS UNSIGNED) >= ?', [(double) $minPrice]);
             })
             ->when($request->query('max_price'), function($query, $maxPrice) {
-                $query->where('day_price', '<=', $maxPrice);
+                $query->whereRaw('CAST(day_price AS UNSIGNED) <= ?', [(double) $maxPrice]);
             })
             ->when($request->query('min_area'), function($query, $minArea) {
-                $query->where('area', '>=', $minArea);
+                $query->whereRaw('CAST(area AS UNSIGNED) >= ?', [(double) $minArea]);
             })
             ->when($request->query('max_area'), function($query, $maxArea) {
-                $query->where('area', '<=', $maxArea);
+                $query->whereRaw('CAST(area AS UNSIGNED) <= ?', [(double)$maxArea]);
             })
             ->when($request->query('min_bedrooms'), function($query, $minBedrooms) {
-                $query->where('bedrooms', '>=', $minBedrooms);
+                $query->whereRaw('CAST(bedrooms AS UNSIGNED) >= ?',[(int) $minBedrooms]);
             })
             ->when($request->query('max_bedrooms'), function($query, $maxBedrooms) {
-                $query->where('bedrooms', '<=', $maxBedrooms);
+                $query->whereRaw('CAST(bedrooms AS UNSIGNED) <= ?',[(int) $maxBedrooms]);
             })
             ->when($request->query('min_bathrooms'), function($query, $minBathrooms) {
-                $query->where('bathrooms', '>=', $minBathrooms);
+                $query->whereRaw('CAST(bathrooms AS UNSIGNED) >= ?', [(int) $minBathrooms]);
             })
             ->when($request->query('max_bathrooms'), function($query, $maxBathrooms) {
-                $query->where('bathrooms', '<=', $maxBathrooms);
+                $query->whereRaw('CAST(bathrooms AS UNSIGNED) <= ?', [(int)$maxBathrooms]);
             })
             ->when($request->query('min_livingrooms'), function($query, $minLivingrooms) {
-                $query->where('livingrooms', '>=', $minLivingrooms);
+                $query->whereRaw('CAST(livingrooms AS UNSIGNED) >= ?',[(int)$minLivingrooms]);
             })
             ->when($request->query('max_livingrooms'), function($query, $maxLivingrooms) {
-                $query->where('livingrooms', '<=', $maxLivingrooms);
+                $query->whereRaw('CAST(livingrooms AS UNSIGNED) <= ?', [(int) $maxLivingrooms]);
             })->where('user_id','!=',$user_id)
-            ->with(['city', 'governorate'])->get();
+            ->with(['city', 'governorate'])->withAvg('evaluations','star')->get();
 
           return  HouseResource::collection($houses);
 }
@@ -121,7 +122,7 @@ public function storeHouse(StoreHouseRequest $request)
 public function getHousesForOwner()
     {
             $user_id = Auth::id();
-            $houses=House::where('user_id',$user_id)->with(['city', 'governorate'])->get();
+            $houses=House::where('user_id',$user_id)->with(['city', 'governorate'])->withAvg('evaluations','star')->get();
              if (count($houses)!==0)
              return  HouseResource::collection( $houses);
              return response()->json([
@@ -262,7 +263,8 @@ public function removeFromFavorites($houseId)
 
     public function getFavoriteHousesByUser(){
 
-        $houses=Auth::user()->favoriteHouses()->with(['city', 'governorate'])->get();
+        $houses=Auth::user()->favoriteHouses()->with(['city', 'governorate'])
+        ->withAvg('evaluations','star')->get();
         if (count($houses)!==0)
              return  HouseResource::collection($houses);
              return response()->json([
