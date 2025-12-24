@@ -49,11 +49,7 @@ class AcceptedBookNotification extends Notification
     {
         return [
         "title"=>'New Notification',
-        "body"=>'your book is accepted',
-        "data"=>['title_house'=>$this->Booking->house->title,
-        'start_date'=>$this->Booking->start_date,
-        'end_date'=>$this->Booking->end_date
-
-         ] ];
+        "body"=>'your book is accepted '.$this->Booking->house->title. ' house',
+         ];
     }
 }

@@ -7,19 +7,17 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class RejectionUpdateBookNotification extends Notification
+class UpdateBookRequestNotification extends Notification
 {
     use Queueable;
 
     /**
      * Create a new notification instance.
      */
-
-    protected $Booking;
-
-    public function __construct($Booking)
+     protected $house;
+    public function __construct($house)
     {
-        $this->Booking=$Booking;
+        $this->house=$house;
     }
 
     /**
@@ -36,16 +34,18 @@ class RejectionUpdateBookNotification extends Notification
      * Get the mail representation of the notification.
      */
 
+
     /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
      */
+
     public function toDatabase(object $notifiable): array
     {
         return [
         "title"=>'New Notification',
-        "body"=>'your update book is Rejection '.$this->Booking->house->title. ' house',
-         ];
-        }
+        "body"=>'you have new update book request '.$this->house->title. ' house',
+        ];
+    }
 }

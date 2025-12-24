@@ -51,6 +51,8 @@ Route::get('getBookForHouse/{id}',[BookController::class,'getBookForHouse']);
 
 Route::post('storeEvaluation/{id}',[EvaluationController::class,'storeEvaluation']);
 Route::get('getHousesByEvaluation',[EvaluationController::class,'getHousesByEvaluation']);
+
+Route::get('getNotificationsForUser',[UserController::class,'getNotificationsForUser']);
 //Route::get('getDetailsHouses/{id}',[HouseController::class,'getDetailsHouses']);
 });
 

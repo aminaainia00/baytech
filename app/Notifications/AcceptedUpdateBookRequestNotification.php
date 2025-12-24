@@ -7,13 +7,17 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class RegisterRequestNotification extends Notification
+class AcceptedUpdateBookRequestNotification extends Notification
 {
     use Queueable;
-    protected $user;
-    public function __construct($user)
+
+    /**
+     * Create a new notification instance.
+     */
+    protected $Booking;
+    public function __construct($Booking)
     {
-        $this->user=$user;
+        $this->Booking=$Booking;
     }
 
     /**
@@ -26,16 +30,22 @@ class RegisterRequestNotification extends Notification
         return ['database'];
     }
 
+    /**
+     * Get the mail representation of the notification.
+     */
+
 
     /**
      * Get the array representation of the notification.
      *
      * @return array<string, mixed>
      */
+
     public function toDatabase(object $notifiable): array
     {
         return [
-        "message"=>"you have new register request"
-        ];
+        "title"=>'New Notification',
+        "body"=>'your update book is accepted '.$this->Booking->house->title. ' house',
+         ];
     }
 }

@@ -10,7 +10,11 @@ use App\Models\Book;
 use App\Models\House;
 use App\Models\User;
 use App\Notifications\AcceptedBookNotification;
+use App\Notifications\AcceptedUpdateBookRequestNotification;
 use App\Notifications\BookRequestNotification;
+use App\Notifications\RejectionBookNotification;
+use App\Notifications\RejectionUpdateBookNotification;
+use App\Notifications\UpdateBookRequestNotification;
 use App\Services\FcmService;
 use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -65,7 +69,7 @@ class BookController extends Controller
     ]);
     $fcm=new FcmService();
     if($owner->fcm_token!=null)
-    $fcm->sendNotification($owner->fcm_token,'New Book Request','house:'. $house->title);
+    $fcm->sendNotification($owner->fcm_token,'New Notification','you have new book request '. $house->title.' house');
     Notification::send($owner,new BookRequestNotification($house));
     return new BookResource($booking);
 }
@@ -110,7 +114,7 @@ public function acceptedeBooking($id)
         $booking->update([
         'book_status' => 'accepted'
     ]);
-     Book::where('house_id', $booking->house_id)
+     $bookRej=Book::where('house_id', $booking->house_id)
         ->where('id','!=', $booking->id)
         ->where('book_status', 'pending')
         ->where(function ($q) use ($booking) {
@@ -120,10 +124,19 @@ public function acceptedeBooking($id)
                     $query->where('start_date', '<=', $booking->start_date)
                           ->where('end_date', '>=', $booking->end_date);
                 });
-        })
-        
-        ->update(['book_status' => 'cancelled']);
-      Book::where('house_id', $houseId)
+        })->get();
+        $fcm=new FcmService();
+        foreach($bookRej as $book){
+        Notification::send($book->user,new RejectionBookNotification($book));
+             if($book->user->fcm_token!=null)
+         $fcm->sendNotification($book->user->fcm_token,'New Notification','your book is Rejection for '.$book->house->title .' house',);
+        $book->book_status = 'cancelled';
+        $book->save();
+        }
+
+
+
+     $BookRejUpdate= Book::where('house_id', $houseId)
      ->where('id','!=', $booking->id)
      ->where('start_date_update' ,'!=',null)
      ->where('end_date_update' ,'!=',null)
@@ -136,17 +149,24 @@ public function acceptedeBooking($id)
                     $query->where('start_date_update', '<=', $booking->start_date)
                           ->where('end_date_update', '>=', $booking->end_date);
                 });
-        })
-             ->update(['start_date_update' => null,
-                'end_date_update'=>null,
-                'price_difference'=>null,
-                'total_price_update'=>null
-            ]);
+        }) ->get();
+             $fcm=new FcmService();
+             foreach($BookRejUpdate as $book){
+             Notification::send($book->user,new RejectionUpdateBookNotification($book));
+             if($book->user->fcm_token!=null)
+             $fcm->sendNotification($book->user->fcm_token,'New Notification','your update book is Rejection '.$book->house->title.' house');
+             $book->start_date_update = null;
+             $book->end_date_update=null;
+             $book->price_difference =null;
+             $book->total_price_update=null;
+             $book->save();
+
+        }
 
 
     $fcm=new FcmService();
     if($user->fcm_token!=null)
-    $fcm->sendNotification($user->fcm_token,'New Notification','your book is accepted',[$booking->start_date,$booking->start_date,$booking->house->title]);
+    $fcm->sendNotification($user->fcm_token,'New Notification','your book is accepted '.$booking->house->title.' house');
     Notification::send($user,new AcceptedBookNotification($booking));
     return response()->json(['message' => 'Booking accepted ']);
 }
@@ -173,6 +193,10 @@ public function RejectionBooking($id){
         $booking->update([
         'book_status' => 'cancelled'
     ]);
+    $fcm=new FcmService();
+        Notification::send($booking->user,new RejectionBookNotification($booking));
+        if($booking->user->fcm_token!=null)
+         $fcm->sendNotification($booking->user->fcm_token,'New Notification','your book is Rejection for '.$booking->house->title .' house',);
     return response()->json(['message' => 'Booking cancelled ']);}
     return response()->json(['errors'=>'this book is '.$booking->book_status .' already']);}
     catch (ModelNotFoundException $ex) {
@@ -304,7 +328,7 @@ if ($oldStartDate === $newStartDate && $oldEndDate === $newEndDate) {
         ], 422);
     }
 
-   // $oldStart = new DateTime($booking->start_date);
+    //$oldStart = new DateTime($booking->start_date);
     //$oldEnd = new DateTime($booking->end_date);
     //$oldDays = $oldEnd->diff($oldStart)->days+1;
     //$oldPrice = $oldDays * $house->day_price;
@@ -322,27 +346,19 @@ if ($oldStartDate === $newStartDate && $oldEndDate === $newEndDate) {
     $endDifference  = (int)$endDifference;
     $priceDifferenceStart= $startDifference*$house->day_price;
     $priceDifferenceEnd= $endDifference*$house->day_price;
- if ($booking->book_status === 'accepted') {
 
-   $priceDifferencePos=0;
+       $priceDifferencePos=0;
     if ($priceDifferenceStart > 0) {
         $priceDifferencePos +=$priceDifferenceStart;}
     if ($priceDifferenceEnd > 0) {
         $priceDifferencePos +=$priceDifferenceEnd;}
 
-
-       /* $user->account -= $priceDifference;
-        $user->save();
-        $owner->account += $priceDifference;
-        $owner->save();*/
-
-    }
     $priceDifferenceNeg=0;
     if ($priceDifferenceStart < 0) {
         $priceDifferenceNeg +=$priceDifferenceStart;}
     if ($priceDifferenceEnd < 0) {
         $priceDifferenceNeg +=$priceDifferenceEnd;}
-
+    if ($booking->book_status==='accepted'){
         $daysBeforeStart = (strtotime($booking->start_date) - strtotime('now')) / (60*60*24);
         $daysBeforeStart = (int)$daysBeforeStart;
         if ($daysBeforeStart >= 5) {
@@ -362,10 +378,11 @@ if ($oldStartDate === $newStartDate && $oldEndDate === $newEndDate) {
         }
         else{
            $priceDifferenceNeg=0;
-        }
+        }}
 
 
     $priceDifference=$priceDifferencePos+$priceDifferenceNeg;
+
     if ($priceDifference> $user->account) {
             return response()->json([
                 "errors" => "The money in your account is not enough for the booking price."
@@ -378,6 +395,10 @@ if ($oldStartDate === $newStartDate && $oldEndDate === $newEndDate) {
         'total_price_update'=> $booking->total_price+$priceDifference,
         'price_difference'=> $priceDifference
     ]);
+     $fcm=new FcmService();
+    if($owner->fcm_token!=null)
+    $fcm->sendNotification($owner->fcm_token,'New Notification','you have new update book request '. $house->title.' house');
+    Notification::send($owner,new UpdateBookRequestNotification($house));
    return response()->json(  ['Book'=>[
                 'id'=>$booking->id,
                 'start_date_update' => $booking->start_date_update,
@@ -424,26 +445,28 @@ public function acceptedUpdateBookRequest($id){
     $owner=User::findOrFail($ownerId);
     if ($owner_id!==$ownerId)
          return response()->json(['errors' => 'unauthorized'], 403);
-         if ($priceDifference > 0) {
+
+     if ($booking->book_status === 'accepted'){
+        if ($priceDifference > 0) {
         if ($priceDifference > $user->account) {
             return response()->json([
                 "errors" => "The money in your account is not enough for the booking price."
             ], 422);
         }
-
         $user->account -= $priceDifference;
         $user->save();
         $owner->account += $priceDifference;
         $owner->save();
-}
- if ($priceDifference < 0) {
+       }
+
+       if ($priceDifference < 0) {
             $owner->account -= abs($priceDifference);
             $owner->save();
             $user->account += abs($priceDifference);
             $user->save();
-    }
+    }}
 
-     Book::where('house_id', $booking->house_id)
+     $bookRej=Book::where('house_id', $booking->house_id)
         ->where('id','!=', $booking->id)
         ->where('book_status', 'pending')
         ->where(function ($q) use ($booking) {
@@ -453,9 +476,16 @@ public function acceptedUpdateBookRequest($id){
                     $query->where('start_date', '<=', $booking->start_date_update)
                           ->where('end_date', '>=', $booking->end_date_update);
                 });
-        })
-     ->update(['book_status' => 'cancelled']);
-      Book::where('house_id', $houseId)
+        })->get();
+        $fcm=new FcmService();
+        foreach($bookRej as $book){
+        Notification::send($book->user,new RejectionBookNotification($book));
+        if($book->user->fcm_token!=null)
+        $fcm->sendNotification($book->user->fcm_token,'New Notification','your book is Rejection for '.$book->house->title .' house',);
+        $book->book_status = 'cancelled';
+        $book->save();
+        }
+      $BookRejUpdate=Book::where('house_id', $houseId)
      ->where('id','!=', $booking->id)
      ->where('start_date_update' ,'!=',null)
      ->where('end_date_update' ,'!=',null)
@@ -468,12 +498,18 @@ public function acceptedUpdateBookRequest($id){
                     $query->where('start_date_update', '<=', $booking->start_date_update)
                           ->where('end_date_update', '>=', $booking->end_date_update);
                 });
-        })
-             ->update(['start_date_update' => null,
-                'end_date_update'=>null,
-                'price_difference'=>null,
-                'total_price_update'=>null
-            ]);
+        })->get();
+             $fcm=new FcmService();
+             foreach($BookRejUpdate as $book){
+             Notification::send($book->user,new RejectionUpdateBookNotification($book));
+             if($book->user->fcm_token!=null)
+             $fcm->sendNotification($book->user->fcm_token,'New Notification','your update book is Rejection '.$book->house->title.' house');
+             $book->start_date_update = null;
+             $book->end_date_update=null;
+             $book->price_difference =null;
+             $book->total_price_update=null;
+             $book->save();}
+
         $booking->update([
         'start_date' => $booking->start_date_update,
         'end_date'   => $booking->end_date_update,
@@ -483,7 +519,11 @@ public function acceptedUpdateBookRequest($id){
         'total_price_update'=> null,
         'price_difference'=> null
     ]);
-      return response()->json(['message' => ' update Booking accepted ']);
+    $fcm=new FcmService();
+    if($user->fcm_token!=null)
+    $fcm->sendNotification($user->fcm_token,'New Notification','your update book is accepted '.$booking->house->title.' house');
+    Notification::send($user,new AcceptedUpdateBookRequestNotification($booking));
+    return response()->json(['message' => ' update Booking accepted ']);
 
 
 }
@@ -511,6 +551,12 @@ public function RejectionUpdateBookRequest($id){
                 'price_difference'=>null,
                 'total_price_update'=>null
             ]);
+             $fcm=new FcmService();
+             Notification::send($booking->user,new RejectionUpdateBookNotification($booking));
+             if($booking->user->fcm_token!=null)
+             $fcm->sendNotification($booking->user->fcm_token,'New Notification','your update book is Rejection '.$booking->house->title.' house');
+
+
     return response()->json(['message' => ' update Booking Rejection ']);}
     catch (ModelNotFoundException $ex) {
         return response()->json([

@@ -49,8 +49,8 @@ class BookRequestNotification extends Notification
         public function toDatabase(object $notifiable): array
     {
         return [
-        "title"=>'New Book Request',
-        "body"=>'house:'. $this->house->title
+        "title"=>'New Notification',
+        "body"=>'you have new book request '.$this->house->title. ' house',
         ];
     }
 }

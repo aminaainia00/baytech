@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\NotificationResource;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Notifications\RegisterRequestNotification;
@@ -51,8 +52,7 @@ class UserController extends Controller
                  $validated['personal_photo']=$path;
                }
         $user=User::create($validated);
-        $users=User::where('role','admin')->get();
-        Notification::send($users,new RegisterRequestNotification($user));
+
         return response()->json(['message'=>'Your request is being processed','userData'=>$user], 201);
     }
 
@@ -253,6 +253,16 @@ class UserController extends Controller
 
             ], 404);
             }
+
+        }
+        public function getNotificationsForUser()
+        {
+            $notifications=Auth()->user()->notifications()->get();
+            if(count($notifications)===0){
+                 return response()->json([
+                'message' => 'you don\'t have any notification '], 200);
+            }
+            return  NotificationResource::collection($notifications);
 
         }
 
