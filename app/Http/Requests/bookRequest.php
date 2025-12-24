@@ -25,7 +25,7 @@ class bookRequest extends FormRequest
            // 'houseId' => 'required|exists:houses,id',
            // 'userId' => 'required|exists:users,id',
             'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'required|date|after:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
 
         ];
     }

@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Notifications\RegisterRequestNotification;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rules\Password;
 
 
@@ -49,6 +51,8 @@ class UserController extends Controller
                  $validated['personal_photo']=$path;
                }
         $user=User::create($validated);
+        $users=User::where('role','admin')->get();
+        Notification::send($users,new RegisterRequestNotification($user));
         return response()->json(['message'=>'Your request is being processed','userData'=>$user], 201);
     }
 
@@ -157,6 +161,8 @@ class UserController extends Controller
 
     $user=User::where('phone',$request->phone)->firstOrFail();
     $token=$user->createToken('auth_Token')->plainTextToken;
+    $user->fcm_token=$request->fcm_token;
+    $user->save();
      return response()->json([
             'message'=>'user login successfully',
             'User'=>$user,

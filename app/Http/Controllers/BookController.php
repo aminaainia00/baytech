@@ -2,16 +2,21 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Http\Requests\bookRequest;
 use App\Http\Resources\BookResource;
 use App\Http\Resources\UpdateBookeResourse;
 use App\Models\Book;
 use App\Models\House;
 use App\Models\User;
+use App\Notifications\AcceptedBookNotification;
+use App\Notifications\BookRequestNotification;
+use App\Services\FcmService;
 use DateTime;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 
 class BookController extends Controller
 {
@@ -19,6 +24,11 @@ class BookController extends Controller
     $user_id = Auth::id();
     $house = House::findOrFail($id);
     $user = User::findOrFail($user_id);
+    $owner=$house->user;
+    $ownerId=House::select('user_id')->where('id',$id)->first()->user_id;
+    if ($user_id===$ownerId){
+         return response()->json(['errors' => 'Are you stupid?,this house is youuuurs'], 403);
+    }
     $overlap = Book::where('house_id', $id)
     ->where('book_status','accepted')
         ->where(function ($query) use ($request) {
@@ -53,7 +63,10 @@ class BookController extends Controller
         'end_date' => $request->end_date,
         'total_price'=>$total_price
     ]);
-
+    $fcm=new FcmService();
+    if($owner->fcm_token!=null)
+    $fcm->sendNotification($owner->fcm_token,'New Book Request','house:'. $house->title);
+    Notification::send($owner,new BookRequestNotification($house));
     return new BookResource($booking);
 }
 public function BookingRequests($houseId)
@@ -64,7 +77,9 @@ public function BookingRequests($houseId)
     if ($user_id!==$userId->user_id)
          return response()->json(['errors' => 'unauthorized'], 403);
     if (count($BookingRequests)!==0)
-             return  BookResource::collection( $BookingRequests);
+            {
+                return  BookResource::collection($BookingRequests);
+            }
              return response()->json([
               'errors'=>'you don\'t have any Book request for this house'],200);
 
@@ -106,6 +121,7 @@ public function acceptedeBooking($id)
                           ->where('end_date', '>=', $booking->end_date);
                 });
         })
+        
         ->update(['book_status' => 'cancelled']);
       Book::where('house_id', $houseId)
      ->where('id','!=', $booking->id)
@@ -128,7 +144,10 @@ public function acceptedeBooking($id)
             ]);
 
 
-
+    $fcm=new FcmService();
+    if($user->fcm_token!=null)
+    $fcm->sendNotification($user->fcm_token,'New Notification','your book is accepted',[$booking->start_date,$booking->start_date,$booking->house->title]);
+    Notification::send($user,new AcceptedBookNotification($booking));
     return response()->json(['message' => 'Booking accepted ']);
 }
     return response()->json(['errors'=>'this book is '.$booking->book_status .' already']);
@@ -202,7 +221,7 @@ public function cancelBooking($Id) {
 public function getMyBookings(Request $request)
 {
     $userId = Auth::id();
-    $now = now();
+    $now =date('Y-m-d', strtotime('now'));
 
     $type = $request->query('type');
 
@@ -223,7 +242,6 @@ public function getMyBookings(Request $request)
         })
         ->orderBy('start_date', 'desc')
         ->get();
-
     return BookResource::collection($bookings);
 }
 public function updateBooking(Request $request, $id)
@@ -231,7 +249,7 @@ public function updateBooking(Request $request, $id)
     try{
     $request->validate([
     'start_date_update' => 'required|date',
-    'end_date_update'   => 'required|date|after:start_date_update',
+    'end_date_update'   => 'required|date|after_or_equal:start_date_update',
     ]);
     $booking = Book::findOrFail($id);
     $user = $booking->user;
@@ -286,26 +304,32 @@ if ($oldStartDate === $newStartDate && $oldEndDate === $newEndDate) {
         ], 422);
     }
 
-    $oldStart = new DateTime($booking->start_date);
-    $oldEnd = new DateTime($booking->end_date);
-    $oldDays = $oldEnd->diff($oldStart)->days+1;
-    $oldPrice = $oldDays * $house->day_price;
+   // $oldStart = new DateTime($booking->start_date);
+    //$oldEnd = new DateTime($booking->end_date);
+    //$oldDays = $oldEnd->diff($oldStart)->days+1;
+    //$oldPrice = $oldDays * $house->day_price;
 
-    $newStart = new DateTime($request->start_date_update);
-    $newEnd = new DateTime($request->end_date_update);
-    $newDays = $newEnd->diff($newStart)->days+1;
-    $newPrice = $newDays * $house->day_price;
-    $priceDifference = $newPrice - $oldPrice;
-
+   // $newStart = new DateTime($request->start_date_update);
+    //$newEnd = new DateTime($request->end_date_update);
+    //$newDays = $newEnd->diff($newStart)->days+1;
+    //$newPrice = $newDays * $house->day_price;
+    //$priceDifference = $newPrice - $oldPrice;
+   // $startDifference=$oldStart->diff($newStart)->days;
+   // $endDifference=$oldEnd->diff($newEnd)->days;
+    $startDifference = (strtotime($booking->start_date) - strtotime($request->start_date_update)) / (60*60*24);
+    $startDifference = (int) $startDifference;
+    $endDifference = (strtotime($request->end_date_update) - strtotime($booking->end_date)) / (60*60*24);
+    $endDifference  = (int)$endDifference;
+    $priceDifferenceStart= $startDifference*$house->day_price;
+    $priceDifferenceEnd= $endDifference*$house->day_price;
  if ($booking->book_status === 'accepted') {
 
+   $priceDifferencePos=0;
+    if ($priceDifferenceStart > 0) {
+        $priceDifferencePos +=$priceDifferenceStart;}
+    if ($priceDifferenceEnd > 0) {
+        $priceDifferencePos +=$priceDifferenceEnd;}
 
-    if ($priceDifference > 0) {
-        if ($priceDifference > $user->account) {
-            return response()->json([
-                "errors" => "The money in your account is not enough for the booking price."
-            ], 422);
-        }
 
        /* $user->account -= $priceDifference;
         $user->save();
@@ -313,7 +337,12 @@ if ($oldStartDate === $newStartDate && $oldEndDate === $newEndDate) {
         $owner->save();*/
 
     }
-    if ($priceDifference < 0) {
+    $priceDifferenceNeg=0;
+    if ($priceDifferenceStart < 0) {
+        $priceDifferenceNeg +=$priceDifferenceStart;}
+    if ($priceDifferenceEnd < 0) {
+        $priceDifferenceNeg +=$priceDifferenceEnd;}
+
         $daysBeforeStart = (strtotime($booking->start_date) - strtotime('now')) / (60*60*24);
         $daysBeforeStart = (int)$daysBeforeStart;
         if ($daysBeforeStart >= 5) {
@@ -328,27 +357,29 @@ if ($oldStartDate === $newStartDate && $oldEndDate === $newEndDate) {
             $owner->save();
             $user->account += abs($priceDifference)/2;
             $user->save();*/
-            $priceDifference/=2;
+            $priceDifferenceNeg/=2;
 
         }
         else{
-           $priceDifference=0;
+           $priceDifferenceNeg=0;
         }
-    }
 
 
-}
+    $priceDifference=$priceDifferencePos+$priceDifferenceNeg;
+    if ($priceDifference> $user->account) {
+            return response()->json([
+                "errors" => "The money in your account is not enough for the booking price."
+            ], 422);
+        }
 
     $booking->update([
         'start_date_update' => $request->start_date_update,
         'end_date_update'   => $request->end_date_update,
-        'total_price_update'=> $newPrice,
+        'total_price_update'=> $booking->total_price+$priceDifference,
         'price_difference'=> $priceDifference
     ]);
    return response()->json(  ['Book'=>[
                 'id'=>$booking->id,
-                'user_id' => $booking->user_id,
-                'house_id' => $booking->house_id,
                 'start_date_update' => $booking->start_date_update,
                 'end_date_update' => $booking->end_date_update,
                 'price_difference'=>$priceDifference
@@ -373,8 +404,8 @@ public function updateRequests($houseId)
     $userId=House::select('user_id')->where('id',$houseId)->first();
     if ($user_id!==$userId->user_id)
          return response()->json(['errors' => 'unauthorized'], 403);
-    if (count( $updateRequests)!==0)
-         return UpdateBookeResourse::collection($updateRequests);
+    if (count( $updateRequests)!==0){
+         return UpdateBookeResourse::collection($updateRequests);}
      return response()->json([
               'errors'=>'you don\'t have any update request for this house'],200);
 
